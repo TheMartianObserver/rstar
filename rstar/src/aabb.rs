@@ -177,7 +177,8 @@ where
     fn center(&self) -> Self::Point {
         let one = <Self::Point as Point>::Scalar::one();
         let two = one + one;
-        self.lower.component_wise(&self.upper, |x, y| (x + y) / two)
+        self.lower
+            .component_wise(&self.upper, |x, y| x + (y - x) / two)
     }
 
     fn intersection_area(&self, other: &Self) -> <Self::Point as Point>::Scalar {
@@ -233,6 +234,21 @@ mod test {
     use super::AABB;
     use crate::envelope::Envelope;
     use crate::object::PointDistance;
+    use crate::RTree;
+
+    #[test]
+    // See https://github.com/georust/rstar/issues/139
+    fn test_overflow() {
+        let mut rtree = RTree::new();
+
+        rtree.insert([-1231069110, 165759396]);
+        rtree.insert([781046969, 1474650861]);
+        rtree.insert([2044084841, -178727451]);
+        rtree.insert([477217386, 1765868819]);
+        rtree.insert([1257259285, -1226428015]);
+        rtree.insert([-1802029933, -488481506]);
+        rtree.insert([-1786107855, 2050884187]);
+    }
 
     /// Test that min_max_dist_2 is identical to distance_2 for the equivalent
     /// min max corner of the AABB. This is necessary to prevent optimizations
